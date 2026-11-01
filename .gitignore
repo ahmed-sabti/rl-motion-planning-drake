@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+._*
+.DS_Store
+.venv
+.venv-server/
+*.egg-info/
+.claude/
+runs/
+*.replay.pkl
+data/pose-maps
+.env
+.env.*
+!.env.example
+.vscode/
+# artifacts: generated task banks, trained policies, runs
+banks/
+policy/
+*.zip

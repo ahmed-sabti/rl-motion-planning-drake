@@ -1,0 +1,39 @@
+name: planar-physics
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      provenance: false
+      args:
+        BUILD_JOBS: ${BUILD_JOBS:-3}
+    image: planar-physics:drake-1.57.0
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=512m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - runs:/app/runs
+      - maps:/app/data/pose-maps
+      - banks:/app/banks           # task banks, built with scripts/training/build_bank.py
+      # optional: your own trained policies (.zip + .json), read-only
+      # - ./policy:/app/policy:ro
+    environment:
+      DASHBOARD_PORT: ${DASHBOARD_PORT:-4880}
+      DASHBOARD_2R_PORT: ${DASHBOARD_2R_PORT:-4881}
+    command: ["python", "-m", "dashboard", "--host", "0.0.0.0", "--meshcat-port", "${DASHBOARD_MESH_START:-7800}", "--two-link-meshcat-port", "${DASHBOARD_2R_MESH_START:-7840}"]
+    ports:
+      - "${DASHBOARD_BIND:-127.0.0.1}:${DASHBOARD_PORT:-4880}:4880"
+      - "${DASHBOARD_BIND:-127.0.0.1}:${DASHBOARD_2R_PORT:-4881}:4881"
+      - "${DASHBOARD_BIND:-127.0.0.1}:${DASHBOARD_MESH_RANGE:-7800-7820}:${DASHBOARD_MESH_RANGE:-7800-7820}"
+      - "${DASHBOARD_BIND:-127.0.0.1}:${DASHBOARD_2R_MESH_RANGE:-7840-7860}:${DASHBOARD_2R_MESH_RANGE:-7840-7860}"
+
+volumes:
+  runs:
+  maps:
+  banks:

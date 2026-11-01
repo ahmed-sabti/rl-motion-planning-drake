@@ -1,0 +1,30 @@
+robot: arm.urdf
+base_xy_m: [0.0, 0.0]
+gravity_m_s2: [0.0, -9.81]
+contract:
+  margin_m: 0.010
+  numerical_slack_m: 0.003
+  goal_tol_m: 0.030
+  dwell_s: 0.20
+  settle_s: 0.30
+  hold_speed_rad_s: 0.05
+  dt_s: 0.002
+  dense_dt_s: 0.0005
+  deadline_s: 6.0
+  torque_rate_nm_s: [4240.0, 1880.0, 480.0]
+  kp: 400.0
+  kd: 40.0
+goals:
+  upper: [0.60, 0.60]
+  middle: [0.60, 0.0]
+  lower: [0.60, -0.60]
+scenes:
+  free: null
+  nominal:
+    wall: &wall
+      plane_x_m: 0.40
+      half_height_m: 1.00
+      thickness_m: 0.04
+      gap_centres_m: [-0.26, 0.26]
+      gap_widths_m: [0.32, 0.32]
+protocol: static-three-goals-held-starts-v4

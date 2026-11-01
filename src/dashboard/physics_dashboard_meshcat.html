@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planar robot viewer</title>
+<style>
+html,body,#viewer{width:100%;height:100%;margin:0;overflow:hidden}
+body>.dg.main{display:none!important}
+#status{position:fixed;left:12px;bottom:10px;font:13px system-ui;color:#65776d;pointer-events:none}
+</style>
+<div id="viewer"></div><div id="status" role="status">Connecting viewer…</div>
+<script>
+const port = Number(new URLSearchParams(location.search).get('port'));
+if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid viewer port');
+const endpoint = location.port
+    ? new URL(location.origin)
+    : new URL(`/meshcat/${port}/`, location.origin);
+if (location.port) endpoint.port = port;
+const script = document.createElement('script');
+script.src = new URL('meshcat.js', location.href).href;
+script.onload = () => {
+    const {Viewer, THREE} = MeshCat, setCamera = Viewer.prototype.set_camera;
+    const disc = document.createElement('canvas');
+    disc.width = disc.height = 32;
+    const ink = disc.getContext('2d');
+    ink.fillStyle = 'black'; ink.fillRect(0, 0, 32, 32);
+    ink.fillStyle = 'white'; ink.beginPath(); ink.arc(16, 16, 16, 0, 2 * Math.PI); ink.fill();
+    const mask = new THREE.CanvasTexture(disc), setObject = Viewer.prototype.set_object;
+    Viewer.prototype.set_object = function(path, object) {
+        if (object.isPoints && this.normalize_set_object_path(path).at(-1) === 'nodes')
+            Object.assign(object.material, {alphaMap:mask, alphaTest:.5, needsUpdate:true});
+        if (this.normalize_set_object_path(path).includes('posemap'))
+            object.traverse(part => {
+                part.castShadow = part.receiveShadow = false;
+                if (part.material)
+                    for (const material of Array.isArray(part.material) ? part.material : [part.material])
+                        Object.assign(material, {toneMapped:false, needsUpdate:true});
+            });
+        return setObject.call(this, path, object);
+    };
+    Viewer.prototype.set_camera = function(camera) {
+        const target = this.controls?.target.clone();
+        this.controls?.dispose();
+        camera.up.set(0, 0, -1);
+        setCamera.call(this, camera);
+        Object.assign(this.controls, {enableRotate:false, enablePan:true, enableZoom:true, screenSpacePanning:true});
+        this.controls.mouseButtons.LEFT = this.controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+        Object.assign(this.controls.touches, {ONE:THREE.TOUCH.PAN, TWO:THREE.TOUCH.DOLLY_PAN});
+        if (target) this.controls.target.copy(target);
+        this.controls.update();
+    };
+    const viewer = new Viewer(document.getElementById('viewer')), status = document.getElementById('status');
+    for (const [name, intensity] of Object.entries({SpotLight:30, PointLightNegativeX:25, PointLightPositiveX:25, AmbientLight:.3, FillLight:.5}))
+        viewer.set_property(['Lights', name, '<object>'], 'intensity', intensity);
+    endpoint.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    let connected = false;
+    function connect() {
+        viewer.connect(endpoint.href);
+        viewer.connection.onopen = () => { if (connected) location.reload(); connected = true; status.hidden = true; };
+        viewer.connection.onclose = () => { status.hidden = false; status.textContent = 'Reconnecting viewer…'; setTimeout(connect, 1000); };
+    }
+    connect();
+};
+script.onerror = () => { document.getElementById('status').textContent = 'Viewer unavailable. Reload to reconnect.'; };
+document.head.appendChild(script);
+</script>
+</html>

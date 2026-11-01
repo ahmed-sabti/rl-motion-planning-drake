@@ -1,0 +1,109 @@
+<robot xmlns:drake="http://drake.mit.edu" name="planar_arm">
+  <link name="base" />
+  <link name="link1">
+    <inertial>
+      <origin xyz="0.15 0 0" />
+      <mass value="1.0" />
+      <inertia ixx="0.00045" iyy="0.0075" izz="0.0075" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual name="link1_visual">
+      <origin xyz="0.15 0 0" rpy="0 1.5707963267948966 0" />
+      <geometry>
+        <drake:capsule radius="0.03" length="0.3" />
+      </geometry>
+      <material name="arm">
+        <color rgba="0.25 0.45 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link1_collision">
+      <origin xyz="0.15 0 0" rpy="0 1.5707963267948966 0" />
+      <geometry>
+        <drake:capsule radius="0.03" length="0.3" />
+      </geometry>
+      <drake:proximity_properties>
+        <drake:mu_static value="0.5" />
+        <drake:mu_dynamic value="0.5" />
+      </drake:proximity_properties>
+    </collision>
+    <visual name="joint_marker1">
+      <origin xyz="0 0 0.04" />
+      <geometry>
+        <sphere radius="0.012" />
+      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="j1" type="revolute">
+    <parent link="base" />
+    <child link="link1" />
+    <origin xyz="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3.141592653589793" upper="3.141592653589793" effort="9.4" velocity="3.0" drake:acceleration="6.0" />
+    <dynamics damping="0.6" />
+  </joint>
+  <transmission name="motor1">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="j1" />
+    <actuator name="motor1" />
+  </transmission>
+  <link name="link2">
+    <inertial>
+      <origin xyz="0.15 0 0" />
+      <mass value="1.0" />
+      <inertia ixx="0.00045" iyy="0.0075" izz="0.0075" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+    <visual name="link2_visual">
+      <origin xyz="0.15 0 0" rpy="0 1.5707963267948966 0" />
+      <geometry>
+        <drake:capsule radius="0.03" length="0.3" />
+      </geometry>
+      <material name="arm">
+        <color rgba="0.25 0.45 0.85 1" />
+      </material>
+    </visual>
+    <collision name="link2_collision">
+      <origin xyz="0.15 0 0" rpy="0 1.5707963267948966 0" />
+      <geometry>
+        <drake:capsule radius="0.03" length="0.3" />
+      </geometry>
+      <drake:proximity_properties>
+        <drake:mu_static value="0.5" />
+        <drake:mu_dynamic value="0.5" />
+      </drake:proximity_properties>
+    </collision>
+    <visual name="joint_marker2">
+      <origin xyz="0 0 0.04" />
+      <geometry>
+        <sphere radius="0.012" />
+      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <visual name="tip_marker">
+      <origin xyz="0.3 0 0.04" />
+      <geometry>
+        <sphere radius="0.012" />
+      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="j2" type="revolute">
+    <parent link="link1" />
+    <child link="link2" />
+    <origin xyz="0.3 0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.6" upper="2.6" effort="2.4" velocity="3.0" drake:acceleration="6.0" />
+    <dynamics damping="0.16" />
+  </joint>
+  <transmission name="motor2">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="j2" />
+    <actuator name="motor2" />
+  </transmission>
+  <frame name="tip" link="link2" xyz="0.3 0 0" rpy="0 0 0" />
+</robot>
